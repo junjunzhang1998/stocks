@@ -8,11 +8,11 @@ execute:
   message: false
 
 book:
-  title: "YOUR PROJECT TITLE"
+  title: "Stocks"
   author:
-    - AUTHOR1 (UNI1)
-    - AUTHOR2 (UNI2)
-  repo-url: https://github.com/YOUR_GITHUB_ACCOUNT/REPO_NAME
+    - JJ Zhang (jz3980)
+    - Xinxin Zhang (xz2843)
+  repo-url: https://github.com/junjunzhang1998/stocks
   date: today
   page-footer:
     right: |
