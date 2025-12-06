@@ -1,4 +1,64 @@
 # Data
+```{r}
+#install.packages("reticulate") installing reticulate to use Python
+library(reticulate)
+```
+
+```{python}
+import yfinance as yf
+import pandas as pd
+
+# 1. Tickers + sector names
+sector_etfs = ["XLK", "XLE", "XLF", "XLV", "XLP", "XLI", "^GSPC"]
+sector_map = {
+    "XLK": "Technology",
+    "XLE": "Energy",
+    "XLF": "Financials",
+    "XLV": "Health Care",
+    "XLP": "Consumer Staples",
+    "XLI": "Industrials",
+    "^GSPC": "S&P 500"
+}
+
+# 2. Download data
+raw = yf.download(
+    tickers=sector_etfs,
+    start="2019-01-01",
+    end="2025-11-30",
+    group_by="ticker",
+    auto_adjust=False,
+    progress=False
+)
+
+# 3. Tidy to long format
+frames = []
+for t in sector_etfs:
+    tmp = raw[t].copy()
+    tmp["Ticker"] = t
+    tmp["Date"] = tmp.index
+    frames.append(tmp)
+
+df = pd.concat(frames, ignore_index=True)
+
+# 4. Add sector + metrics
+df["Sector"] = df["Ticker"].map(sector_map)
+df["return"] = df.groupby("Ticker")["Adj Close"].pct_change()
+df["vol_21d"] = (
+    df.groupby("Ticker")["return"]
+      .rolling(21)
+      .std()
+      .reset_index(0, drop=True)
+)
+df["rolling_max"] = df.groupby("Ticker")["Adj Close"].cummax()
+df["drawdown"] = df["Adj Close"] / df["rolling_max"] - 1
+
+# 5. Save
+df.to_csv("sector_etfs_clean.csv", index=False)
+```
+```{r}
+sector= read.csv("sector_etfs_clean.csv")
+head(sector)
+```
 
 ## Description
 
