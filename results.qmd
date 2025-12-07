@@ -1,9 +1,10 @@
+# Results
 
 ```{r}
 #load the three datasets and tidyverse package
 library(tidyverse)
 
-# --- Load & clean Media data ---
+### --- Load & clean Media data ---
 media <- read_csv("data/movie_media_clean.csv", show_col_types = FALSE) |>
   mutate(Date = as.Date(Date))
 
@@ -18,7 +19,115 @@ box_office <- read_csv("data/box_office.csv", show_col_types = FALSE)
 ```
 
 
-# Results
+
+
+### 1. The number of theatre releases and box office revenue still fall flat compared to pre-COVID levels 
+```{r}
+p_box1 <- ggplot(box_office, aes(Year, Domestic_BoxOffice)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  scale_y_continuous(labels = scales::dollar) +
+  labs(
+    title = "U.S. Theatrical Box Office Revenue by Year",
+    subtitle = "Pre-COVID peak, COVID collapse, and incomplete recovery",
+    x = "Year",
+    y = "Total Domestic Box Office"
+  ) +
+  theme_minimal()
+
+p_box1
+```
+
+
+```{r}
+p_box2 <- ggplot(box_office, aes(Year, Releases)) +
+  geom_col(fill = "#4C72B0") +
+  labs(
+    title = "Number of Theatrical Releases per Year",
+    subtitle = "Industry output collapsed during COVID and remains structurally lower",
+    x = "Year",
+    y = "Number of releases"
+  ) +
+  theme_minimal()
+
+p_box2
+```
+maybe- add number of theatre closures per year over the past few years? 
+locations of movie theatres? by state? https://investor.amctheatres.com/sec-filings/all-sec-filings/content/0001411579-25-000042/amc-20241231x10k.htm
+
+
+
+### 2. While most U.S. sectors recovered strongly post-COVID, the movie industry lags all major sectors
+```{r}
+# Rebase each media company to 1
+media_rebased <- media |>
+  group_by(Ticker) |>
+  arrange(Date, .by_group = TRUE) |>
+  mutate(base = first(Adj_Close),
+         rebased = Adj_Close / base) |>
+  ungroup()
+
+# Compute equal-weight average index
+movie_index <- media_rebased |>
+  group_by(Date) |>
+  summarize(
+    Movie_Index = mean(rebased, na.rm = TRUE)
+  )
+
+
+sectors_rebased <- sectors |>
+  group_by(Ticker, Sector) |>
+  arrange(Date, .by_group = TRUE) |>
+  mutate(
+    base = first(`Adj Close`),
+    rebased = `Adj Close` / base
+  ) |>
+  ungroup()
+
+
+# Sector ETF index
+sector_index <- sectors_rebased |>
+  select(Date, Sector, rebased)
+
+# Movie Index needs a pseudo "Sector" label
+movie_index2 <- movie_index |>
+  mutate(Sector = "Movie Industry")
+
+combined <- bind_rows(
+  sector_index,
+  movie_index2 |> mutate(rebased = Movie_Index)
+)
+
+```
+
+```{r}
+combined2 <- combined |>
+  mutate(
+    is_movie = (Sector == "Movie Industry")
+  )
+
+ggplot(combined2, aes(Date, rebased, color = Sector, group = Sector)) +
+  geom_line(aes(linewidth = is_movie, alpha = is_movie)) +
+  scale_y_log10() +
+  scale_linewidth_manual(values = c("FALSE" = 0.6, "TRUE" = 2.0)) +
+  scale_alpha_manual(values = c("FALSE" = 0.8, "TRUE" = 1.0)) +
+  labs(
+    title = "Movie Industry vs Major Sector ETFs (Rebased to 1)",
+    subtitle = "Movie Industry highlighted for comparison",
+    y = "Rebased Price (log scale)",
+    x = "Date",
+    color = "Sector / Industry",
+    linewidth = NULL,
+    alpha = NULL
+  ) +
+  theme_minimal() +
+  theme(legend.position = "right")
+```
+Used average stock price of companies in the movie industry 
+
+
+
+### 3. Performance of sub-industries within the movie industry differ
 ```{r}
 media_rebased <- media |>
   group_by(Ticker) |>
@@ -54,7 +163,6 @@ media_rebased <- media |>
 p2 <- ggplot(media_rebased, aes(Date, rebased, color = Ticker)) +
   geom_line(alpha = 0.85) +
   facet_wrap(~ SubIndustry, scales = "free_y") +
-  scale_y_log10() +
   labs(
     title = "Sub-Industry Performance: Theaters vs Studios vs Streamers vs Diversified vs Benchmark",
     subtitle = "Each ticker rebased to 1 at its first non-missing price (log scale)",
@@ -132,74 +240,7 @@ ggplot(cor_long, aes(Var1, Var2, fill = Correlation)) +
   )
 
 ```
-```{r}
-# Rebase each media company to 1
-media_rebased <- media |>
-  group_by(Ticker) |>
-  arrange(Date, .by_group = TRUE) |>
-  mutate(base = first(Adj_Close),
-         rebased = Adj_Close / base) |>
-  ungroup()
 
-# Compute equal-weight average index
-movie_index <- media_rebased |>
-  group_by(Date) |>
-  summarize(
-    Movie_Index = mean(rebased, na.rm = TRUE)
-  )
-
-
-sectors_rebased <- sectors |>
-  group_by(Ticker, Sector) |>
-  arrange(Date, .by_group = TRUE) |>
-  mutate(
-    base = first(`Adj Close`),
-    rebased = `Adj Close` / base
-  ) |>
-  ungroup()
-
-
-# Sector ETF index
-sector_index <- sectors_rebased |>
-  select(Date, Sector, rebased)
-
-# Movie Index needs a pseudo "Sector" label
-movie_index2 <- movie_index |>
-  mutate(Sector = "Movie Industry")
-
-combined <- bind_rows(
-  sector_index,
-  movie_index2 |> mutate(rebased = Movie_Index)
-)
-
-```
-
-```{r}
-combined2 <- combined |>
-  mutate(
-    is_movie = (Sector == "Movie Industry")
-  )
-
-ggplot(combined2, aes(Date, rebased, color = Sector, group = Sector)) +
-  geom_line(aes(linewidth = is_movie, alpha = is_movie)) +
-  scale_y_log10() +
-  scale_linewidth_manual(values = c("FALSE" = 0.6, "TRUE" = 2.0)) +
-  scale_alpha_manual(values = c("FALSE" = 0.8, "TRUE" = 1.0)) +
-  labs(
-    title = "Movie Industry vs Major Sector ETFs (Rebased to 1)",
-    subtitle = "Movie Industry highlighted for comparison",
-    y = "Rebased Price (log scale)",
-    x = "Date",
-    color = "Sector / Industry",
-    linewidth = NULL,
-    alpha = NULL
-  ) +
-  theme_minimal() +
-  theme(legend.position = "right")
-
-
-
-```
 ```{r}
 # 1) Equal-weight subindustry index (rebased)
 sub_index <- media |>
@@ -262,91 +303,10 @@ ggplot(time_underwater, aes(fct_reorder(SubIndustry, pct_underwater), pct_underw
   theme_minimal()
 
 ```
-```{r}
-# 1) Movie industry equal-weight price index (use Adj_Close, not rebased)
-movie_index <- media |>
-  filter(SubIndustry != "Benchmark") |>
-  group_by(Date) |>
-  summarize(
-    movie_price = mean(Adj_Close, na.rm = TRUE),
-    .groups = "drop"
-  )
 
-# 2) S&P 500
-sp <- media |>
-  filter(Ticker == "^GSPC") |>
-  select(Date, sp_price = Adj_Close)
 
-# 3) Netflix
-nflx <- media |>
-  filter(Ticker == "NFLX") |>
-  select(Date, nflx_price = Adj_Close)
 
-# 4) Align dates and rebase all three to 1 at common start
-all3 <- movie_index |>
-  inner_join(sp, by = "Date") |>
-  inner_join(nflx, by = "Date") |>
-  arrange(Date)
 
-base_movie <- first(all3$movie_price)
-base_sp    <- first(all3$sp_price)
-base_nflx  <- first(all3$nflx_price)
-
-relative_long <- all3 |>
-  mutate(
-    `Movie Industry` = movie_price / base_movie,
-    `S&P 500`        = sp_price    / base_sp,
-    `Netflix`        = nflx_price  / base_nflx
-  ) |>
-  select(Date, `Movie Industry`, `S&P 500`, `Netflix`) |>
-  pivot_longer(
-    cols = -Date,
-    names_to = "Series",
-    values_to = "rebased"
-  )
-
-ggplot(relative_long, aes(Date, rebased, color = Series)) +
-  geom_line(linewidth = 1) +
-  scale_y_log10() +
-  labs(
-    title = "Netflix vs Movie Industry vs S&P 500 (Rebased)",
-    subtitle = "Netflix tracks the broad market more closely than the struggling movie industry",
-    x = "Date",
-    y = "Rebased Price (log scale)",
-    color = ""
-  ) +
-  theme_minimal()
-
-```
-
-```{r}
-p_box1 <- ggplot(box_office, aes(Year, Domestic_BoxOffice)) +
-  geom_line(linewidth = 1) +
-  geom_point(size = 2) +
-  scale_y_continuous(labels = scales::dollar) +
-  labs(
-    title = "U.S. Theatrical Box Office Revenue by Year",
-    subtitle = "Pre-COVID peak, COVID collapse, and incomplete recovery",
-    x = "Year",
-    y = "Total Domestic Box Office"
-  ) +
-  theme_minimal()
-
-p_box1
-```
-```{r}
-p_box2 <- ggplot(box_office, aes(Year, Releases)) +
-  geom_col(fill = "#4C72B0") +
-  labs(
-    title = "Number of Theatrical Releases per Year",
-    subtitle = "Industry output collapsed during COVID and remains structurally lower",
-    x = "Year",
-    y = "Number of releases"
-  ) +
-  theme_minimal()
-
-p_box2
-```
 ```{r}
 # --- Equal-weight subindustry returns (wide) ---
 sub_returns <- media |>
@@ -421,6 +381,67 @@ ggplot(sub_daily, aes(x = sub_ret, y = SubIndustry, fill = SubIndustry)) +
   ) +
   theme_minimal() +
   theme(legend.position = "none")
-
 ```
 
+
+
+
+### 4. Netflix behaves like a tech company
+```{r}
+# 1) Movie industry equal-weight price index (use Adj_Close, not rebased)
+movie_index <- media |>
+  filter(SubIndustry != "Benchmark") |>
+  group_by(Date) |>
+  summarize(
+    movie_price = mean(Adj_Close, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# 2) S&P 500
+sp <- media |>
+  filter(Ticker == "^GSPC") |>
+  select(Date, sp_price = Adj_Close)
+
+# 3) Netflix
+nflx <- media |>
+  filter(Ticker == "NFLX") |>
+  select(Date, nflx_price = Adj_Close)
+
+# 4) Align dates and rebase all three to 1 at common start
+all3 <- movie_index |>
+  inner_join(sp, by = "Date") |>
+  inner_join(nflx, by = "Date") |>
+  arrange(Date)
+
+base_movie <- first(all3$movie_price)
+base_sp    <- first(all3$sp_price)
+base_nflx  <- first(all3$nflx_price)
+
+relative_long <- all3 |>
+  mutate(
+    `Movie Industry` = movie_price / base_movie,
+    `S&P 500`        = sp_price    / base_sp,
+    `Netflix`        = nflx_price  / base_nflx
+  ) |>
+  select(Date, `Movie Industry`, `S&P 500`, `Netflix`) |>
+  pivot_longer(
+    cols = -Date,
+    names_to = "Series",
+    values_to = "rebased"
+  )
+
+ggplot(relative_long, aes(Date, rebased, color = Series)) +
+  geom_line(linewidth = 1) +
+  scale_y_log10() +
+  labs(
+    title = "Netflix vs Movie Industry vs S&P 500 (Rebased)",
+    subtitle = "Netflix tracks the broad market more closely than the struggling movie industry",
+    x = "Date",
+    y = "Rebased Price (log scale)",
+    color = ""
+  ) +
+  theme_minimal()
+```
+
+alluvial diagram of movies distributed in theaters vs. streaming? 
+compare netflix revenue to other companies? 
