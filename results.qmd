@@ -52,8 +52,8 @@ p_box2 <- ggplot(box_office, aes(Year, Releases)) +
 
 p_box2
 ```
-maybe- add number of theatre closures per year over the past few years? 
-locations of movie theatres? by state? https://investor.amctheatres.com/sec-filings/all-sec-filings/content/0001411579-25-000042/amc-20241231x10k.htm
+locations of movie theatres by state? 2019 and then 2024? can count numbers and use map for % of decrease?  https://investor.amctheatres.com/sec-filings/all-sec-filings/content/0001411579-25-000042/amc-20241231x10k.htm
+https://investor.amctheatres.com/sec-filings/all-sec-filings/content/0001411579-20-000027/amc-20191231x10k.htm
 
 
 
@@ -351,8 +351,6 @@ ggplot(loadings_plot, aes(PC1, PC2)) +
     y = paste0("PC2 (", round(summary(pca)$importance[2,2]*100,1), "% variance)")
   ) +
   theme_minimal(base_size = 14)
-
-
 ```
 ```{r}
 library(ggridges)
@@ -383,10 +381,7 @@ ggplot(sub_daily, aes(x = sub_ret, y = SubIndustry, fill = SubIndustry)) +
   theme(legend.position = "none")
 ```
 
-
-
-
-### 4. Netflix behaves like a tech company
+### 4. Netflix behaves like a tech company & AMC theatre underperforms 
 ```{r}
 # 1) Movie industry equal-weight price index (use Adj_Close, not rebased)
 movie_index <- media |>
