@@ -52,8 +52,156 @@ p_box2 <- ggplot(box_office, aes(Year, Releases)) +
 
 p_box2
 ```
+
+
 locations of movie theatres by state? 2019 and then 2024? can count numbers and use map for % of decrease?  https://investor.amctheatres.com/sec-filings/all-sec-filings/content/0001411579-25-000042/amc-20241231x10k.htm
 https://investor.amctheatres.com/sec-filings/all-sec-filings/content/0001411579-20-000027/amc-20191231x10k.htm
+```{r}
+library(readxl)
+library(dplyr)
+library(stringr)
+library(sf)
+library(ggplot2)
+library(scales)
+
+## 1. Read AMC tables -------------------------------------------------------
+
+amc_2019 <- read_excel(
+  "data/AMC_theatres_screens_by_market_2019.xlsx",
+  sheet = 1
+) |>
+  rename(
+    state    = `U.S. Markets`,
+    theatres = Theatres,
+    screens  = Screens
+  ) |>
+  mutate(state = str_trim(state))
+
+amc_2024 <- read_excel(
+  "data/AMC_theatres_screens_by_market_2024.xlsx",
+  sheet = 1
+) |>
+  rename(
+    state    = `U.S. Markets`,
+    theatres = Theatres,
+    screens  = Screens
+  ) |>
+  mutate(state = str_trim(state))
+
+## 2. Read shapefile + keep only contiguous U.S. ---------------------------
+
+states_sf <- st_read("data/cb_2018_us_state_20m/cb_2018_us_state_20m.shp")
+
+states_sf_conus <- states_sf |>
+  filter(!STUSPS %in% c("AK", "HI", "PR", "GU", "VI", "AS", "MP")) |>
+  mutate(state = NAME)
+
+# vector of valid state names (lower 48 + DC)
+valid_states <- states_sf_conus$state
+
+## 3. Filter AMC tables to states in shapefile -----------------------------
+
+amc_2019_clean <- amc_2019 |>
+  filter(state %in% valid_states)
+
+amc_2024_clean <- amc_2024 |>
+  filter(state %in% valid_states)
+
+## 4. Compute changes ------------------------------------------------------
+
+state_changes <- amc_2019_clean |>
+  select(
+    state,
+    theatres_2019 = theatres,
+    screens_2019  = screens
+  ) |>
+  inner_join(
+    amc_2024_clean |>
+      select(
+        state,
+        theatres_2024 = theatres,
+        screens_2024  = screens
+      ),
+    by = "state"
+  ) |>
+  mutate(
+    theatres_change     = theatres_2024 - theatres_2019,
+    theatres_pct_change = (theatres_2024 - theatres_2019) / theatres_2019,
+    screens_change      = screens_2024 - screens_2019,
+    screens_pct_change  = (screens_2024 - screens_2019) / screens_2019
+  )
+
+## 5. Join back to shapefile for mapping -----------------------------------
+
+map_data <- states_sf_conus |>
+  left_join(state_changes, by = "state")
+```
+
+```{r}
+library(ggplot2)
+library(scales)
+
+ggplot(map_data) +
+  geom_sf(aes(fill = theatres_pct_change),
+          color = "white", size = 0.2) +
+  # zoom to lower 48 + DC
+  coord_sf(xlim = c(-125, -66), ylim = c(24, 50), expand = FALSE) +
+  scale_fill_gradient2(
+    name   = "Percent change\nin theatres",
+    labels = percent_format(accuracy = 1),
+    low    = "#b2182b",   # more negative (closures)
+    mid    = "white",
+    high   = "#2166ac",   # more positive (growth)
+    midpoint = 0
+  ) +
+  labs(
+    title    = "Change in AMC Theatres by State (2019–2024)",
+    subtitle = "Percent change in number of theatres",
+    caption  = "Source: AMC U.S. Markets Theatres & Screens tables, 2019 vs 2024"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.title = element_blank()
+  )
+```
+
+```{r}
+ggplot(map_data) +
+  geom_sf(aes(fill = screens_pct_change),
+          color = "white", size = 0.2) +
+  coord_sf(xlim = c(-125, -66), ylim = c(24, 50), expand = FALSE) +
+  scale_fill_gradient2(
+    name   = "Percent change\nin screens",
+    labels = percent_format(accuracy = 1),
+    low    = "#b2182b",   # big decreases
+    mid    = "white",
+    high   = "#2166ac",   # increases
+    midpoint = 0
+  ) +
+  labs(
+    title    = "Change in AMC Screens by State (2019–2024)",
+    subtitle = "Percent change in number of screens",
+    caption  = "Source: AMC U.S. Markets Theatres & Screens tables, 2019 vs 2024"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.title = element_blank()
+  )
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -124,6 +272,133 @@ ggplot(combined2, aes(Date, rebased, color = Sector, group = Sector)) +
   theme(legend.position = "right")
 ```
 Used average stock price of companies in the movie industry 
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+
+# combined: Date, Sector, rebased (you already built this)
+# Make sure it's sorted
+combined2 <- combined |>
+  arrange(Sector, Date)
+
+# 1) Get final rebased value per Sector
+final_perf <- combined2 |>
+  group_by(Sector) |>
+  filter(!is.na(rebased)) |>
+  slice_tail(n = 1) |>
+  ungroup() |>
+  transmute(
+    Sector,
+    start = 1,               # everyone starts at 1
+    end   = rebased          # ending multiple
+  )
+
+# Long format for slopegraph
+perf_long <- final_perf |>
+  pivot_longer(
+    cols = c(start, end),
+    names_to  = "Point",
+    values_to = "value"
+  ) |>
+  mutate(
+    Point = factor(Point, levels = c("start", "end")),
+    is_movie = (Sector == "Movie Industry")
+  )
+
+ggplot(perf_long, aes(x = Point, y = value, group = Sector, color = Sector)) +
+  # connecting line
+  geom_line(aes(linewidth = is_movie, alpha = is_movie)) +
+  # start/end points
+  geom_point(size = 3, aes(size = is_movie)) +
+  # label end with “×1.2”, “×2.3”, etc.
+  geom_text(
+    data = perf_long |> filter(Point == "end"),
+    aes(
+      label = paste0("×", round(value, 1)),
+      hjust = -0.1
+    ),
+    size = 3
+  ) +
+  scale_x_discrete(
+    labels = c(
+      start = "2019 (rebased = 1)",
+      end   = "2025 (final level)"
+    )
+  ) +
+  scale_y_log10(labels = number_format(accuracy = 0.1)) +
+  scale_linewidth_manual(values = c("FALSE" = 0.5, "TRUE" = 1.8)) +
+  scale_alpha_manual(values = c("FALSE" = 0.5, "TRUE" = 1.0)) +
+  scale_size_manual(values = c("FALSE" = 1.5, "TRUE" = 3.5), guide = "none") +
+  coord_cartesian(clip = "off") +
+  labs(
+    title = "Growth Since 2019: Movie Industry vs Major Sectors",
+    subtitle = "All sectors start at 1; end point shows final multiple (log scale)",
+    x = "",
+    y = "Rebased level (× starting value)",
+    color = "Sector / Industry",
+    linewidth = NULL,
+    alpha = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "right",
+    plot.margin = margin(5.5, 40, 5.5, 5.5) # space for labels on right
+  )
+```
+```{r}
+
+library(dplyr)
+library(ggplot2)
+library(forcats)
+library(scales)
+
+# 1) Get final rebased level for each Sector
+final_perf <- combined |>
+  arrange(Sector, Date) |>
+  group_by(Sector) |>
+  filter(!is.na(rebased)) |>
+  slice_tail(n = 1) |>
+  ungroup() |>
+  transmute(
+    Sector,
+    multiple = rebased   # how many times the 2019 starting value
+  ) |>
+  mutate(
+    Sector = fct_reorder(Sector, multiple),
+    is_movie = (Sector == "Movie Industry"),
+    label = paste0("×", round(multiple, 1))
+  )
+
+ggplot(final_perf, aes(x = Sector, y = multiple, fill = is_movie)) +
+  geom_col() +
+  geom_text(
+    aes(label = label),
+    hjust = -0.1,
+    size = 3
+  ) +
+  coord_flip(clip = "off") +
+  scale_fill_manual(
+    values = c("FALSE" = "grey70", "TRUE" = "#d73027"),
+    guide = "none"
+  ) +
+  scale_y_continuous(
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  labs(
+    title = "Cumulative Performance Since 2019",
+    subtitle = "Each bar shows final rebased level (2019 = 1)",
+    x = "",
+    y = "Rebased level (× starting value)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.margin = margin(5.5, 40, 5.5, 5.5)
+  )
+```
 
 
 
