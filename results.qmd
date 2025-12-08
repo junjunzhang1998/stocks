@@ -856,6 +856,39 @@ ggplot(
 
 
 
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+regime_order <- c("Pre-COVID",
+                  "COVID & stimulus",
+                  "Rate hikes / inflation",
+                  "AI / recent")
+
+regime_sub <- media_regime |>
+  group_by(SubIndustry, regime) |>
+  summarize(
+    cum_ret = prod(1 + return, na.rm = TRUE) - 1,
+    .groups = "drop"
+  ) |>
+  mutate(
+    regime = factor(regime, levels = regime_order)
+  )
+
+ggplot(regime_sub,
+       aes(x = regime, y = cum_ret, fill = SubIndustry)) +
+  geom_col(position = "dodge") +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "Cumulative Return by Subindustry and Regime",
+    subtitle = "COVID & stimulus period supercharged streamers; theaters lag in later regimes",
+    x = "",
+    y = "Cumulative return in regime"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
 
 
 
@@ -916,6 +949,113 @@ ggplot(relative_long, aes(Date, rebased, color = Series)) +
   ) +
   theme_minimal()
 ```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+focus_tickers <- c("NFLX", "ROKU", "AMC", "DIS", "^GSPC")
+
+media_focus <- media |>
+  filter(Ticker %in% focus_tickers, !is.na(Adj_Close)) |>
+  group_by(Ticker) |>
+  arrange(Date, .by_group = TRUE) |>
+  mutate(
+    base    = first(Adj_Close),
+    rebased = Adj_Close / base
+  ) |>
+  ungroup()
+
+ggplot(media_focus,
+       aes(x = Date, y = rebased, color = Ticker)) +
+  geom_line(linewidth = 0.9, alpha = 0.9) +
+  scale_y_log10() +
+  labs(
+    title = "Rebased Performance of Selected Movie/Media Stocks",
+    subtitle = "Each ticker rebased to 1 at its first non-missing price (log scale)",
+    x = "Date",
+    y = "Rebased price (log scale)"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+# compute metrics for the same tickers
+stock_stats <- media |>
+  filter(Ticker %in% focus_tickers, !is.na(return)) |>
+  group_by(Ticker) |>
+  arrange(Date, .by_group = TRUE) |>
+  mutate(
+    rebased   = cumprod(1 + return),          # grows from 1
+    roll_max  = cummax(rebased),
+    drawdown  = rebased / roll_max - 1
+  ) |>
+  summarize(
+    cum_ret      = last(rebased) - 1,
+    ann_ret      = (1 + mean(return, na.rm = TRUE))^252 - 1,
+    ann_vol      = sd(return, na.rm = TRUE) * sqrt(252),
+    max_drawdown = min(drawdown, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+stock_stats
+```
+
+```{r}
+ggplot(stock_stats,
+       aes(x = Ticker, y = max_drawdown)) +
+  geom_col() +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "Max Drawdown for Selected Stocks",
+    x = "",
+    y = "Max drawdown from prior peak"
+  ) +
+  theme_minimal()
+```
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+regime_order <- c("Pre-COVID",
+                  "COVID & stimulus",
+                  "Rate hikes / inflation",
+                  "AI / recent")
+
+regime_focus <- media_regime |>
+  filter(Ticker %in% focus_tickers,
+         !is.na(return),
+         !is.na(regime)) |>
+  group_by(Ticker, regime) |>
+  summarize(
+    cum_ret = prod(1 + return, na.rm = TRUE) - 1,
+    .groups = "drop"
+  ) |>
+  mutate(
+    regime = factor(regime, levels = regime_order)
+  )
+
+ggplot(regime_focus,
+       aes(x = regime, y = cum_ret, fill = Ticker)) +
+  geom_col(position = "dodge") +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "Cumulative Return by Regime for Selected Stocks",
+    x = "",
+    y = "Cumulative return in regime"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+
 
 alluvial diagram of movies distributed in theaters vs. streaming? 
 compare netflix revenue to other companies? 
