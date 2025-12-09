@@ -10,12 +10,6 @@ The third dataset extends the financial view by pulling data on a few broad sect
 All datasets were collected and ran through Jupyter Notebooks stored in the data-raw/ folder. We exported these datasets as cleaned csv in the data folder to ensure reproducibility. The main limitations are that Box Office Mojo occasionally changes its HTML structure, and Yahoo Finance’s API can return missing values, but both sources are widely used and generally reliable for exploratory analysis. 
 
 
-things to work on 12/7/25:
-- think of a few other charts:
-  - alluvial diagram of movies distributed in theaters vs. streaming? 
-  - movies released by different distributors
-  - compare netflix revenue to other companies? 
-
 ## Missing value analysis
 The movie/media prices dataset has almost complete data. The only thing missing is the extra features created, and only about 2% of rows are missing vol_21d, and a smaller share (around 0.2%) is missing return. For the columns with missing values, such as the Volume or Close, the missingness plot shows that these mostly show up together. This implies that for a handful of dates, the whole price record is absent. 
 
@@ -23,5 +17,119 @@ For the sector ETF data, the story is very similar. All of the core price and id
 
 For the box-office table, there are no missing values at all.
 
+
+### Missing Value Analysis
+
+Describe any patterns you discover in missing values. If no values are missing, graphs should still be included showing that.
+
+(suggested: 2 graphs plus commentary)
+
+```{r fig.width = 9, fig.height = 4}
+#load the three datasets and tidyverse package
+library(tidyverse)
+
+
+### --- Load & clean Media data ---
+media <- read_csv("data/movie_media_clean.csv", show_col_types = FALSE) |>
+  mutate(Date = as.Date(Date))
+
+# --- Load & clean Sector ETFs ---
+sectors <- read_csv("data/sector_etfs_clean.csv", show_col_types = FALSE) |>
+  mutate(Date = as.Date(Date))
+
+# --- Load Box Office Data ---
+box_office <- read_csv("data/box_office.csv", show_col_types = FALSE)
+# use mutate(Date = ...) here only if box_office contains a date column
+
+library(redav)
+
+p_media   <- plot_missing(media,   num_char = 4)
+p_sectors <- plot_missing(sectors, num_char = 4)
+p_box     <- plot_missing(box_office, num_char = 4)
+
+p_media
+p_sectors
+p_box
+```
+
+
+```{r}
+library(tidyverse)
+library(scales)
+
+# sectors
+missing_summary_sectors <- sectors |>
+  summarise(across(everything(), ~ mean(is.na(.)))) |>
+  pivot_longer(everything(),
+               names_to = "variable",
+               values_to = "prop_missing")
+
+# media
+missing_summary_media <- media |>
+  summarise(across(everything(), ~ mean(is.na(.)))) |>
+  pivot_longer(everything(),
+               names_to = "variable",
+               values_to = "prop_missing")
+
+# box office
+missing_summary_box <- box_office |>
+  summarise(across(everything(), ~ mean(is.na(.)))) |>
+  pivot_longer(everything(),
+               names_to = "variable",
+               values_to = "prop_missing")
+```
+
+
+```{r}
+library(tidyverse)
+library(scales)
+
+# example: sectors data (do the same for media, box_office)
+missing_summary_sectors <- sectors |>
+  summarise(across(everything(), ~ mean(is.na(.)))) |>
+  pivot_longer(everything(),
+               names_to = "variable",
+               values_to = "prop_missing")
+
+ggplot(missing_summary_sectors,
+       aes(x = fct_reorder(variable, prop_missing),
+           y = prop_missing)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  scale_y_continuous(
+  labels = percent_format(accuracy = 0.1),
+  breaks = c(0, 0.0025, 0.005, 0.0075, 0.01)  # adjust as you like
+) +
+  labs(
+    title = "Percent of Missing Values by Variable (Sector ETFs)",
+    x = "",
+    y = "% of rows missing"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+
+```{r}
+library(ggplot2)
+library(forcats)
+library(scales)
+
+## Movie/media missingness
+ggplot(missing_summary_media,
+       aes(x = fct_reorder(variable, prop_missing),
+           y = prop_missing)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  scale_y_continuous(
+  labels = percent_format(accuracy = 0.1),
+  breaks = c(0, 0.0025, 0.005, 0.0075, 0.01)  # adjust as you like
+) +
+  labs(
+    title = "Percent of Missing Values by Variable (Movie/Media)",
+    x = "",
+    y = "% of rows missing"
+  ) +
+  theme_minimal(base_size = 12)
+```
 
 

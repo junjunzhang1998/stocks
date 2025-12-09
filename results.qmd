@@ -1,168 +1,68 @@
 # Results
 
+
+## How Moviegoing in the U.S. Has Shifted Since the Pandemic
+### Chart 1. U.S. Theatrical Box Office Revenue by Year
 ```{r}
-#load the three datasets and tidyverse package
-library(tidyverse)
-
-### --- Load & clean Media data ---
-media <- read_csv("data/movie_media_clean.csv", show_col_types = FALSE) |>
-  mutate(Date = as.Date(Date))
-
-# --- Load & clean Sector ETFs ---
-sectors <- read_csv("data/sector_etfs_clean.csv", show_col_types = FALSE) |>
-  mutate(Date = as.Date(Date))
-
 # --- Load Box Office Data ---
+library(tidyverse)
 box_office <- read_csv("data/box_office.csv", show_col_types = FALSE)
-# use mutate(Date = ...) here only if box_office contains a date column
-
-```
-
-### Missing Value Analysis
-```{r fig.width = 9, fig.height = 4}
-library(redav)
-
-p_media   <- plot_missing(media,   num_char = 4)
-p_sectors <- plot_missing(sectors, num_char = 4)
-p_box     <- plot_missing(box_office, num_char = 4)
-
-p_media
-p_sectors
-p_box
-```
-
-
-```{r}
-library(tidyverse)
-library(scales)
-
-# sectors
-missing_summary_sectors <- sectors |>
-  summarise(across(everything(), ~ mean(is.na(.)))) |>
-  pivot_longer(everything(),
-               names_to = "variable",
-               values_to = "prop_missing")
-
-# media
-missing_summary_media <- media |>
-  summarise(across(everything(), ~ mean(is.na(.)))) |>
-  pivot_longer(everything(),
-               names_to = "variable",
-               values_to = "prop_missing")
-
-# box office
-missing_summary_box <- box_office |>
-  summarise(across(everything(), ~ mean(is.na(.)))) |>
-  pivot_longer(everything(),
-               names_to = "variable",
-               values_to = "prop_missing")
-```
-
-
-```{r}
-library(tidyverse)
-library(scales)
-
-# example: sectors data (do the same for media, box_office)
-missing_summary_sectors <- sectors |>
-  summarise(across(everything(), ~ mean(is.na(.)))) |>
-  pivot_longer(everything(),
-               names_to = "variable",
-               values_to = "prop_missing")
-
-ggplot(missing_summary_sectors,
-       aes(x = fct_reorder(variable, prop_missing),
-           y = prop_missing)) +
-  geom_col(fill = "steelblue") +
-  coord_flip() +
-  scale_y_continuous(
-  labels = percent_format(accuracy = 0.1),
-  breaks = c(0, 0.0025, 0.005, 0.0075, 0.01)  # adjust as you like
-) +
-  labs(
-    title = "Percent of Missing Values by Variable (Sector ETFs)",
-    x = "",
-    y = "% of rows missing"
-  ) +
-  theme_minimal(base_size = 12)
-```
-
-
-```{r}
 library(ggplot2)
-library(forcats)
 library(scales)
 
-## Movie/media missingness
-ggplot(missing_summary_media,
-       aes(x = fct_reorder(variable, prop_missing),
-           y = prop_missing)) +
-  geom_col(fill = "steelblue") +
-  coord_flip() +
-  scale_y_continuous(
-  labels = percent_format(accuracy = 0.1),
-  breaks = c(0, 0.0025, 0.005, 0.0075, 0.01)  # adjust as you like
-) +
-  labs(
-    title = "Percent of Missing Values by Variable (Movie/Media)",
-    x = "",
-    y = "% of rows missing"
-  ) +
-  theme_minimal(base_size = 12)
-```
-
-```{r}
-## Box office missingness
-ggplot(missing_summary_box,
-       aes(x = fct_reorder(variable, prop_missing),
-           y = prop_missing)) +
-  geom_col(fill = "steelblue") +
-  coord_flip() +
-  scale_y_continuous(labels = percent_format(accuracy = 1)) +
-  labs(
-    title = "Percent of Missing Values by Variable (Box Office)",
-    x = "",
-    y = "% of rows missing"
-  ) +
-  theme_minimal(base_size = 12)
-```
-
-
-### 1. The number of theatre releases and box office revenue still fall flat compared to pre-COVID levels 
-```{r}
-p_box1 <- ggplot(box_office, aes(Year, Domestic_BoxOffice)) +
+ggplot(box_office, aes(x = Year, y = Domestic_BoxOffice)) +
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
-  scale_y_continuous(labels = scales::dollar) + 
+  scale_y_continuous(
+    limits = c(0, NA),
+    breaks = seq(0, 12e9, by = 2e9),
+    labels = label_dollar(scale = 1e-9, suffix = "B", accuracy = 1)
+  ) +
+  scale_x_continuous(
+    breaks = pretty(box_office$Year, n = 10),
+    minor_breaks = NULL
+  ) +
   labs(
     title = "U.S. Theatrical Box Office Revenue by Year",
     subtitle = "Pre-COVID peak, COVID collapse, and incomplete recovery",
     x = "Year",
-    y = "Total Domestic Box Office"
+    y = "Domestic Box Office (USD, billions)"
   ) +
-  theme_minimal()
-
-p_box1
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
 ```
+Box office revenues have climbed steadily from the 2020 low. However, rather than returning to their earlier levels, the total box office revenues appear to be settling into a lower range than before the pandemic.
 
 
+### Chart 2. Number of Theatrical Releases per Year
 ```{r}
-p_box2 <- ggplot(box_office, aes(Year, Releases)) +
+ggplot(box_office, aes(Year, Releases)) +
   geom_col(fill = "#4C72B0") +
   labs(
     title = "Number of Theatrical Releases per Year",
-    subtitle = "Industry output collapsed during COVID and remains structurally lower",
+    subtitle = "Industry output remains lower than pre-COVID",
     x = "Year",
-    y = "Number of releases"
+    y = "Number of Releases"
   ) +
-  theme_minimal()
+  scale_x_continuous(
+    breaks = pretty(box_office$Year, n = 10),
+    minor_breaks = NULL
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background  = element_rect(fill = "white", color = NA),
+    panel.grid.minor = element_blank()
+  )
 
-p_box2
 ```
+The number of theatrical releases dropped sharply in 2020 and remained below pre-pandemic levels. This indicates that studios have reduced their annual output, releasing fewer films than before—likely reflecting shifts in production and distribution strategies.
 
 
-locations of movie theatres by state? 2019 and then 2024? can count numbers and use map for % of decrease?  https://investor.amctheatres.com/sec-filings/all-sec-filings/content/0001411579-25-000042/amc-20241231x10k.htm
-https://investor.amctheatres.com/sec-filings/all-sec-filings/content/0001411579-20-000027/amc-20191231x10k.htm
+### Chart 3. Change in AMC Theatres by State (2019–2024)
 ```{r}
 library(readxl)
 library(dplyr)
@@ -274,46 +174,19 @@ ggplot(map_data) +
   )
 ```
 
+
+## 2. While most U.S. sectors recovered strongly post-COVID, the movie industry lags behind
+### Chart 4. Movie Industry vs Major Sector ETFs (Rebased to 1)
 ```{r}
-ggplot(map_data) +
-  geom_sf(aes(fill = screens_pct_change),
-          color = "white", size = 0.2) +
-  coord_sf(xlim = c(-125, -66), ylim = c(24, 50), expand = FALSE) +
-  scale_fill_gradient2(
-    name   = "Percent change\nin screens",
-    labels = percent_format(accuracy = 1),
-    low    = "#b2182b",   # big decreases
-    mid    = "white",
-    high   = "#2166ac",   # increases
-    midpoint = 0
-  ) +
-  labs(
-    title    = "Change in AMC Screens by State (2019–2024)",
-    subtitle = "Percent change in number of screens",
-    caption  = "Source: AMC U.S. Markets Theatres & Screens tables, 2019 vs 2024"
-  ) +
-  theme_minimal(base_size = 14) +
-  theme(
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    axis.title = element_blank()
-  )
-```
+### --- Load & clean Media data ---
+media <- read_csv("data/movie_media_clean.csv", show_col_types = FALSE) |>
+  mutate(Date = as.Date(Date))
+
+# --- Load & clean Sector ETFs ---
+sectors <- read_csv("data/sector_etfs_clean.csv", show_col_types = FALSE) |>
+  mutate(Date = as.Date(Date))
 
 
-
-
-
-
-
-
-
-
-
-
-
-### 2. While most U.S. sectors recovered strongly post-COVID, the movie industry lags all major sectors
-```{r}
 # Rebase each media company to 1
 media_rebased <- media |>
   group_by(Ticker) |>
@@ -329,7 +202,6 @@ movie_index <- media_rebased |>
     Movie_Index = mean(rebased, na.rm = TRUE)
   )
 
-
 sectors_rebased <- sectors |>
   group_by(Ticker, Sector) |>
   arrange(Date, .by_group = TRUE) |>
@@ -338,7 +210,6 @@ sectors_rebased <- sectors |>
     rebased = `Adj Close` / base
   ) |>
   ungroup()
-
 
 # Sector ETF index
 sector_index <- sectors_rebased |>
@@ -352,110 +223,164 @@ combined <- bind_rows(
   sector_index,
   movie_index2 |> mutate(rebased = Movie_Index)
 )
-
 ```
-
-```{r}
-combined2 <- combined |>
-  mutate(
-    is_movie = (Sector == "Movie Industry")
-  )
-
-ggplot(combined2, aes(Date, rebased, color = Sector, group = Sector)) +
-  geom_line(aes(linewidth = is_movie, alpha = is_movie)) +
-  scale_y_log10() +
-  scale_linewidth_manual(values = c("FALSE" = 0.6, "TRUE" = 2.0)) +
-  scale_alpha_manual(values = c("FALSE" = 0.8, "TRUE" = 1.0)) +
-  labs(
-    title = "Movie Industry vs Major Sector ETFs (Rebased to 1)",
-    subtitle = "Movie Industry highlighted for comparison",
-    y = "Rebased Price (log scale)",
-    x = "Date",
-    color = "Sector / Industry",
-    linewidth = NULL,
-    alpha = NULL
-  ) +
-  theme_minimal() +
-  theme(legend.position = "right")
-```
-Used average stock price of companies in the movie industry 
-
 
 ```{r}
 library(dplyr)
-library(tidyr)
 library(ggplot2)
 library(scales)
 
-# combined: Date, Sector, rebased (you already built this)
-# Make sure it's sorted
-combined2 <- combined |>
-  arrange(Sector, Date)
+combined2 <- combined  # same data as before
 
-# 1) Get final rebased value per Sector
-final_perf <- combined2 |>
-  group_by(Sector) |>
-  filter(!is.na(rebased)) |>
-  slice_tail(n = 1) |>
-  ungroup() |>
-  transmute(
-    Sector,
-    start = 1,               # everyone starts at 1
-    end   = rebased          # ending multiple
-  )
-
-# Long format for slopegraph
-perf_long <- final_perf |>
-  pivot_longer(
-    cols = c(start, end),
-    names_to  = "Point",
-    values_to = "value"
-  ) |>
-  mutate(
-    Point = factor(Point, levels = c("start", "end")),
-    is_movie = (Sector == "Movie Industry")
-  )
-
-ggplot(perf_long, aes(x = Point, y = value, group = Sector, color = Sector)) +
-  # connecting line
-  geom_line(aes(linewidth = is_movie, alpha = is_movie)) +
-  # start/end points
-  geom_point(size = 3, aes(size = is_movie)) +
-  # label end with “×1.2”, “×2.3”, etc.
-  geom_text(
-    data = perf_long |> filter(Point == "end"),
-    aes(
-      label = paste0("×", round(value, 1)),
-      hjust = -0.1
-    ),
-    size = 3
+ggplot() +
+  # 1. All other sectors: normal colors, thinner, slightly transparent
+  geom_line(
+    data = combined2 |> filter(Sector != "Movie Industry"),
+    aes(x = Date, y = rebased, colour = Sector),
+    linewidth = 0.6,
+    alpha = 0.6
   ) +
-  scale_x_discrete(
-    labels = c(
-      start = "2019 (rebased = 1)",
-      end   = "2025 (final level)"
+  # 2. Movie industry: bold red, thicker
+  geom_line(
+    data = combined2 |> filter(Sector == "Movie Industry"),
+    aes(x = Date, y = rebased, colour = Sector),
+    linewidth = 1.6
+  ) +
+  scale_color_manual(
+    values = c(
+      "Consumer Staples" = "#bc80bd",
+      "Energy"           = "#ff7f00",
+      "Financials"       = "#1f78b4",
+      "Health Care"      = "#33a02c",
+      "Industrials"      = "#6a3d9a",
+      "Movie Industry"   = "#d73027",   # bold red highlight
+      "S&P 500"          = "black",
+      "Technology"       = "#ffd92f"
+    ),
+    name = "Sector / Industry"
+  ) +
+  scale_y_log10(
+    breaks = c(0.5, 1, 2, 3, 5),
+    labels = c("0.5x", "1x", "2x", "3x", "5x")
+  ) +
+  scale_x_date(
+    date_breaks = "1 year",
+    date_labels = "%Y"
+  ) +
+  labs(
+    title = "Movie Industry vs Major Sector ETFs (Rebased to 1)",
+    subtitle = "Movie industry index highlighted against major sector ETFs (log scale)",
+    x = "Date",
+    y = "Rebased price (log scale)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background  = element_rect(fill = "white", color = NA),
+    panel.grid.minor = element_blank(),
+    legend.position = "right"
+  )
+
+```
+The movie industry index is an equal-weighted average of rebased stock prices of companies in our movie_media_clean.csv dataset. From 2019- 2025, the Technology industry showed the strongest overall gains, while the energy industry displayed the greatest volatility. The movie industry performed relatively well through late 2020 to 2022. Post-2022, the movie industry lagged behind most sectors, indicating a slower and less consistent recovery than the market as a whole.
+
+### Chart 5. Stock Price Performance of Movie Companies From 2019–2025
+```{r}
+library(dplyr)
+
+media_rebased <- media |>
+  group_by(Ticker) |>
+  arrange(Date, .by_group = TRUE) |>
+  mutate(
+    base    = first(Adj_Close),
+    rebased = Adj_Close / base,
+    ret     = log(rebased / dplyr::lag(rebased))  # daily log return
+  ) |>
+  ungroup()
+
+vol_df <- media_rebased |>
+  group_by(Ticker) |>
+  summarize(
+    vol = sd(ret, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(vol))
+
+# Choose top 3 most volatile tickers
+highlight_tickers <- vol_df$Ticker[1:3]
+highlight_tickers
+
+```
+```{r}
+library(ggplot2)
+library(scales)
+library(dplyr)
+
+# 1. Which tickers do we want to highlight?
+highlight_tickers    <- highlight_tickers          # your top 3 volatile
+highlight_all        <- c(highlight_tickers, "^GSPC")
+
+# Optional: nicer label for S&P
+media_rebased <- media_rebased |>
+  mutate(Ticker_label = if_else(Ticker == "^GSPC", "S&P 500", Ticker))
+
+ggplot() +
+  # --- Background: all other tickers in grey ---
+  geom_line(
+    data = media_rebased |> filter(!Ticker %in% highlight_all),
+    aes(x = Date, y = rebased, group = Ticker),
+    color = "grey80",
+    linewidth = 0.5,
+    alpha = 0.7
+  ) +
+  # --- Highlight: top 3 most volatile tickers ---
+  geom_line(
+    data = media_rebased |> filter(Ticker %in% highlight_tickers),
+    aes(x = Date, y = rebased, color = Ticker_label),
+    linewidth = 1.4
+  ) +
+  # --- Highlight: S&P 500 (black line) ---
+  geom_line(
+    data = media_rebased |> filter(Ticker == "^GSPC"),
+    aes(x = Date, y = rebased, color = Ticker_label),
+    linewidth = 1.4
+  ) +
+  # manual colors: black for S&P, Dark2 for the 3 volatile names
+  scale_color_manual(
+    name   = "Highlighted tickers",
+    values = c(
+      "S&P 500" = "black",
+      RColorBrewer::brewer.pal(length(highlight_tickers), "Dark2") |>
+        setNames(highlight_tickers)
     )
   ) +
-  scale_y_log10(labels = number_format(accuracy = 0.1)) +
-  scale_linewidth_manual(values = c("FALSE" = 0.5, "TRUE" = 1.8)) +
-  scale_alpha_manual(values = c("FALSE" = 0.5, "TRUE" = 1.0)) +
-  scale_size_manual(values = c("FALSE" = 1.5, "TRUE" = 3.5), guide = "none") +
-  coord_cartesian(clip = "off") +
+  scale_y_log10(
+    breaks = c(0.1, 0.2, 0.5, 1, 2, 5, 10),
+    labels = c("0.1x", "0.2x", "0.5x", "1x", "2x", "5x", "10x")
+  ) +
+  scale_x_date(
+    date_breaks = "1 year",
+    date_labels = "%Y"
+  ) +
   labs(
-    title = "Growth Since 2019: Movie Industry vs Major Sectors",
-    subtitle = "All sectors start at 1; end point shows final multiple (log scale)",
-    x = "",
-    y = "Rebased level (× starting value)",
-    color = "Sector / Industry",
-    linewidth = NULL,
-    alpha = NULL
+    title = "Stock Price Performance of Movie Companies From 2019–2025",
+    subtitle = "Top 3 most volatile tickers and the S&P 500 highlighted; prices rebased to 1 at first date",
+    x = "Date",
+    y = "Rebased price (log scale)"
   ) +
   theme_minimal(base_size = 12) +
   theme(
-    legend.position = "right",
-    plot.margin = margin(5.5, 40, 5.5, 5.5) # space for labels on right
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background  = element_rect(fill = "white", color = NA),
+    panel.grid.minor = element_blank()
   )
+
+
 ```
+
+This chart shows that two companies drove much of the volatility in the movie industry, helping explain the sector’s brief strength from late 2020 to 2022 (see chart 4). For example, Roku’s share price rose sharply in 2020, corresponding to higher streaming usage during stay-at-home conditions. AMC experienced large price swings in early 2021. This was due to the “meme-stock” trading frenzy driven by movements from the reddit group wallstreetbets. These movements stood out from the rest of the movie industry. However, in 2022, both ROKU and AMC collapsed— revealing these were temporary movements rather than sustained industry/company strength. 
+
+### Chart 6. Sector Cumulative Performance Since 2019
 ```{r}
 
 library(dplyr)
@@ -496,7 +421,7 @@ ggplot(final_perf, aes(x = Sector, y = multiple, fill = is_movie)) +
     expand = expansion(mult = c(0, 0.15))
   ) +
   labs(
-    title = "Cumulative Performance Since 2019",
+    title = "Sector Cumulative Performance Since 2019",
     subtitle = "Each bar shows final rebased level (2019 = 1)",
     x = "",
     y = "Rebased level (× starting value)"
@@ -509,29 +434,14 @@ ggplot(final_perf, aes(x = Sector, y = multiple, fill = is_movie)) +
 This bar chart compares how much each major U.S. sector and the movie industry have grown since 2019 (in “× starting value” terms), highlighting that the movie industry’s cumulative performance has lagged behind most other sectors.
 
 
-### 3. Performance of sub-industries within the movie industry differ
+## 3. Performance of sub-industries within the movie industry differ
+### Chart 7. Faceted Sub-Industry in Movie Industry Performance
 ```{r}
-media_rebased <- media |>
-  group_by(Ticker) |>
-  arrange(Date, .by_group = TRUE) |>
-  mutate(
-    base = first(Adj_Close),
-    rebased = Adj_Close / base
-  ) |>
-  ungroup()
+library(dplyr)
+library(ggplot2)
+library(scales)
 
-ggplot(media_rebased, aes(Date, rebased, color = Ticker)) +
-  geom_line(alpha = 0.85) +
-  scale_y_log10() +
-  labs(
-    title = "Long-Term Performance of Movie/Media Companies vs S&P 500",
-    subtitle = "Rebased to 1 at first date; log scale highlights relative divergence",
-    y = "Rebased Price (log scale)",
-    x = "Date"
-  ) +
-  theme_minimal()
-```
-```{r}
+# 1. Rebase each ticker
 media_rebased <- media |>
   filter(!is.na(Adj_Close)) |>
   group_by(Ticker, SubIndustry) |>
@@ -542,230 +452,178 @@ media_rebased <- media |>
   ) |>
   ungroup()
 
-p2 <- ggplot(media_rebased, aes(Date, rebased, color = Ticker)) +
-  geom_line(alpha = 0.85) +
-  facet_wrap(~ SubIndustry, scales = "free_y") +
+# 2. Equal-weighted average within each sub-industry by date
+sub_avg <- media_rebased |>
+  group_by(SubIndustry, Date) |>
+  summarize(
+    rebased_avg = mean(rebased, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# 3. Compute volatility of each sub-industry (based on log returns)
+sub_vol <- sub_avg |>
+  group_by(SubIndustry) |>
+  arrange(Date, .by_group = TRUE) |>
+  mutate(ret = log(rebased_avg / lag(rebased_avg))) |>
+  summarize(
+    vol = sd(ret, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(vol))
+
+# 4. Order facets from most to least volatile
+sub_avg <- sub_avg |>
+  mutate(SubIndustry = factor(SubIndustry, levels = sub_vol$SubIndustry))
+
+# 5. Plot: one average line per sub-industry, faceted
+ggplot(sub_avg, aes(Date, rebased_avg)) +
+  geom_line(color = "#2c7fb8", linewidth = 1) +
+  facet_wrap(~ SubIndustry, ncol = 2) +
+  scale_y_log10(
+    breaks = c(0.25, 0.5, 1, 2, 4, 8),
+    labels = c("0.25x", "0.5x", "1x", "2x", "4x", "8x")
+  ) +
+  scale_x_date( 
+    date_breaks = "1 year", date_labels = "%Y" 
+  ) +
   labs(
-    title = "Sub-Industry Performance: Theaters vs Studios vs Streamers vs Diversified vs Benchmark",
-    subtitle = "Each ticker rebased to 1 at its first non-missing price (log scale)",
-    y = "Rebased Price",
+    title = "Faceted Sub-Industry in Movie Industry Performance",
+    subtitle = "Equal-weighted average of rebased stock prices, ordered by volatility (log scale)",
+    y = "Average rebased price (log scale)",
     x = "Date"
   ) +
-  theme_minimal()
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background  = element_rect(fill = "white", color = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "grey90"),
+    strip.text = element_text(size = 14, face = "bold"),
+    panel.spacing = grid::unit(1.2, "lines"),
+    plot.title.position = "plot",
+    axis.text.x = element_text(size = 9)
+  )
 
-print(p2)
+
 ```
+Theater companies and streamer companies exhibit the most volatility. Theater companies experienced a steep drop in stock price in 2020 followed by an uneven recovery. Streamers rise sharply through 2020–2021 before dropping significantly in 2022. Diversified media firms trend more steadily upward, while studios show a mild, gradual decline.
 
-
+### Chart 8. Correlation Between Movie Sub-Industries (2015–2025)
 ```{r}
-# -------------------------
-# Rebase individual stocks
-# -------------------------
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+library(tibble)
+
+# --- Rebase, build subindustry index, make wide matrix ---
 media_rebased <- media |>
   filter(!is.na(Adj_Close)) |>
   group_by(Ticker) |>
   arrange(Date, .by_group = TRUE) |>
   mutate(
-    base = first(Adj_Close),
+    base    = first(Adj_Close),
     rebased = Adj_Close / base
-  ) |> 
+  ) |>
   ungroup()
 
-# -------------------------
-# Equal-weight subindustry index
-# -------------------------
 subindustry_index <- media_rebased |>
   group_by(Date, SubIndustry) |>
   summarize(SubIndex = mean(rebased, na.rm = TRUE), .groups = "drop")
 
-# -------------------------
-# Wide matrix
-# -------------------------
-sub_wide <- subindustry_index |>
-  pivot_wider(names_from = SubIndustry, values_from = SubIndex)
-
-# -------------------------
-# Desired order
-# -------------------------
 order_vec <- c("Benchmark", "Streamer", "Diversified", "Studio", "Theater")
 
-# -------------------------
-# Correlation matrix with reordered columns
-# -------------------------
-cor_mat <- sub_wide |>
-  select(all_of(order_vec)) |>
-  cor(use = "pairwise.complete.obs")
+sub_wide <- subindustry_index |>
+  pivot_wider(names_from = SubIndustry, values_from = SubIndex) |>
+  select(all_of(order_vec))
 
-# -------------------------
-# Tidy long format
-# -------------------------
+cor_mat <- cor(sub_wide, use = "pairwise.complete.obs")
+
 cor_long <- cor_mat |>
   as.data.frame() |>
   rownames_to_column("Var1") |>
-  pivot_longer(cols = order_vec, names_to = "Var2", values_to = "Correlation")
+  pivot_longer(cols = all_of(order_vec),
+               names_to = "Var2",
+               values_to = "Correlation") |>
+  mutate(
+    Var1 = factor(Var1, levels = order_vec),
+    Var2 = factor(Var2, levels = order_vec)
+  )
 
-# -------------------------
-# Plot heatmap
-# -------------------------
+# --- Plot heatmap with better color scale ---
 ggplot(cor_long, aes(Var1, Var2, fill = Correlation)) +
-  geom_tile(color = "white", linewidth = 0.3) +
-  scale_fill_viridis_c(option = "C", limits = c(-1, 1)) +
+  geom_tile(color = "white", linewidth = 0.4) +
+  geom_text(aes(label = round(Correlation, 2)), size = 3) +
+  scale_fill_gradient2(
+    low  = "#2166ac",   # blue for negative correlations
+    mid  = "white",     # zero
+    high = "#b2182b",   # red for positive correlations
+    midpoint = 0,
+    limits = c(min(cor_long$Correlation), 1),
+    name = "Correlation"
+  ) +
+  coord_fixed() +
   labs(
-    title = "Correlation Between Movie/Media Sub-Industries (2015–2025)",
-    subtitle = "Clearer block structure after business-driven ordering",
-    x = "", y = "", fill = "Correlation"
+    title = "Correlation Between Movie Sub-Industries (2015–2025)",
+    subtitle = "Diverging color scale centered at zero highlights negative vs. positive relationships",
+    x = NULL, y = NULL
   ) +
   theme_minimal(base_size = 12) +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
-    panel.grid = element_blank()
+    panel.grid = element_blank(),
+    plot.title.position = "plot"
   )
 
-```
-
-```{r}
-# 1) Equal-weight subindustry index (rebased)
-sub_index <- media |>
-  filter(!is.na(Adj_Close)) |>
-  group_by(Ticker) |>
-  arrange(Date, .by_group = TRUE) |>
-  mutate(
-    base = first(Adj_Close),
-    rebased = Adj_Close / base
-  ) |>
-  ungroup() |>
-  group_by(Date, SubIndustry) |>
-  summarize(
-    SubIndex = mean(rebased, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-# 2) Drawdown per subindustry
-sub_dd <- sub_index |>
-  group_by(SubIndustry) |>
-  arrange(Date, .by_group = TRUE) |>
-  mutate(
-    roll_max = cummax(SubIndex),
-    drawdown = SubIndex / roll_max - 1
-  ) |>
-  ungroup()
-
-ggplot(sub_dd, aes(Date, drawdown, color = SubIndustry)) +
-  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4) +
-  geom_line(linewidth = 1) +
-  scale_y_continuous(labels = scales::percent) +
-  labs(
-    title = "Sub-Industry Drawdowns from Prior Peak",
-    subtitle = "Theaters suffer persistent deep drawdowns; streamers and diversified recover more",
-    x = "Date",
-    y = "Drawdown from previous peak"
-  ) +
-  theme_minimal()
 
 ```
+Diversified companies and the overall market are the most closely aligned (0.84). Studios and theaters show moderate alignment (0.66). Streamers and studios also track each other fairly well (0.74). Theaters stand out as the outlier — their stock movements line up much less with the rest of the industry. This suggests that theater chains react to a different set of forces than streaming or diversified media firms.
+
+### Chart 9. Density of Daily Returns by Sub-Industry (2019- 2025)
 ```{r}
-time_underwater <- sub_dd |>
-  mutate(underwater = drawdown < 0) |>
-  group_by(SubIndustry) |>
-  summarize(
-    pct_underwater = mean(underwater, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-ggplot(time_underwater, aes(fct_reorder(SubIndustry, pct_underwater), pct_underwater)) +
-  geom_col() +
-  coord_flip() +
-  scale_y_continuous(labels = scales::percent) +
-  labs(
-    title = "Percent of Days Spent Below Previous Peak",
-    subtitle = "Structural damage is largest in Theaters; Benchmark and Diversified fare best",
-    x = "",
-    y = "% of trading days underwater"
-  ) +
-  theme_minimal()
-
-```
-
-
-
-
-```{r}
-# --- Equal-weight subindustry returns (wide) ---
-sub_returns <- media |>
-  filter(!is.na(return)) |>
-  group_by(Date, SubIndustry) |>
-  summarize(sub_ret = mean(return, na.rm = TRUE), .groups = "drop") |>
-  pivot_wider(names_from = SubIndustry, values_from = sub_ret) |>
-  drop_na()
-
-# --- PCA matrix ---
-X <- sub_returns |>
-  select(-Date) |>
-  as.matrix()
-
-# --- PCA ---
-pca <- prcomp(X, scale. = TRUE)
-
-# --- Loadings (important part) ---
-loadings <- as.data.frame(pca$rotation) |>
-  rownames_to_column("SubIndustry")
-
-# scale arrows for plotting aesthetics
-arrow_scale <- 6
-loadings_plot <- loadings |>
-  mutate(
-    PC1 = PC1 * arrow_scale,
-    PC2 = PC2 * arrow_scale
-  )
-
-# --- Clean biplot with arrows only ---
-ggplot(loadings_plot, aes(PC1, PC2)) +
-  geom_segment(aes(x = 0, y = 0, xend = PC1, yend = PC2),
-               arrow = arrow(length = unit(0.25, "cm")),
-               linewidth = 1,
-               color = "red") +
-  geom_text(aes(label = SubIndustry),
-            vjust = -0.5, hjust = 0.5, size = 5, fontface = "bold") +
-  labs(
-    title = "PCA of Movie/Media Subindustry Daily Returns",
-    subtitle = "Arrows show subindustry loadings on PC1 and PC2",
-    x = paste0("PC1 (", round(summary(pca)$importance[2,1]*100,1), "% variance)"),
-    y = paste0("PC2 (", round(summary(pca)$importance[2,2]*100,1), "% variance)")
-  ) +
-  theme_minimal(base_size = 14)
-```
-```{r}
+library(dplyr)
 library(ggridges)
+library(scales)
 
-# 2. Build subindustry daily returns (this defines sub_daily) ----
+# 1. Subindustry daily returns
 sub_daily <- media |>
   filter(!is.na(return)) |>
   group_by(Date, SubIndustry) |>
-  summarize(
-    sub_ret = mean(return, na.rm = TRUE),
-    .groups = "drop"
-  )
+  summarize(sub_ret = mean(return, na.rm = TRUE), .groups = "drop")
 
-# 3. Ridgeline plot, zoomed around typical moves (e.g. -8% to +8%) ----
+# 2. Order subindustries by volatility (optional but nice)
+sub_order <- sub_daily |>
+  group_by(SubIndustry) |>
+  summarize(sd_ret = sd(sub_ret, na.rm = TRUE), .groups = "drop") |>
+  arrange(desc(sd_ret)) |>
+  pull(SubIndustry)
+
+sub_daily <- sub_daily |>
+  mutate(SubIndustry = factor(SubIndustry, levels = sub_order))
+
+# 3. Ridgeline plot with less overlap
 ggplot(sub_daily, aes(x = sub_ret, y = SubIndustry, fill = SubIndustry)) +
-  geom_density_ridges(alpha = 0.8, scale = 4) +
+  geom_density_ridges(alpha = 0.8, scale = 1.2) +  # smaller scale = less stacking
   scale_x_continuous(
-    labels = scales::percent,
-    limits = c(-0.08, 0.08)   # zoom in: change to c(-0.05, 0.05) if you want tighter
+    labels = percent,
+    limits = c(-0.08, 0.08)
   ) +
   labs(
-    title = "Density of Daily Returns by Subindustry",
+    title = "Density of Daily Returns by Sub-Industry (2019- 2025)",
     subtitle = "Zoomed in on typical daily moves (±8%)",
-    x = "Daily Return",
-    y = ""
+    x = "Daily return",
+    y = NULL
   ) +
-  theme_minimal() +
-  theme(legend.position = "none")
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "none",
+    panel.background = element_rect(fill = "white", color = NA)
+  )
+
 ```
+Benchmark and diversified firms have the lowest day-to-day volatility. Studios are in the middle. Streamers have larger tails, reflecting bigger daily moves during the period. Theater stocks are the most volatile, with the widest distribution and most frequent large positive and negative returns.
 
-
-
-
+### Chart 10. How Movie/Media Stocks Move Across Performance Buckets Over Time
 ```{r}
 library(dplyr)
 library(ggplot2)
@@ -891,9 +749,6 @@ ggplot(regime_sub,
 ```
 
 
-
-
-### 4. Netflix behaves like a tech company & AMC theatre underperforms 
 ```{r}
 # 1) Movie industry equal-weight price index (use Adj_Close, not rebased)
 movie_index <- media |>
@@ -1054,8 +909,3 @@ ggplot(regime_focus,
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 30, hjust = 1))
 ```
-
-
-
-alluvial diagram of movies distributed in theaters vs. streaming? 
-compare netflix revenue to other companies? 
