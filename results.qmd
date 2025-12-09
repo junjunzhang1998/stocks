@@ -434,7 +434,7 @@ ggplot(final_perf, aes(x = Sector, y = multiple, fill = is_movie)) +
 This bar chart compares how much each major U.S. sector and the movie industry have grown since 2019 (in “× starting value” terms), highlighting that the movie industry’s cumulative performance has lagged behind most other sectors.
 
 
-## 3. Performance of sub-industries within the movie industry differ
+## Performance of sub-industries within the movie industry differ
 ### Chart 7. Faceted Sub-Industry in Movie Industry Performance
 ```{r}
 library(dplyr)
