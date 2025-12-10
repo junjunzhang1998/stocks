@@ -751,7 +751,6 @@ ggplot(
 ```
 Because there are only a handful of companies in each sub-industry, this alluvial chart is more noisy and the patterns are less obvious. The flows should be read as illustrative of broad shifts rather than precise estimates of how every part of the industry moved.
 
-
 ```{r}
 regime_order <- c("Pre-COVID",
                   "COVID & stimulus",
