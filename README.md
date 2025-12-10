@@ -1,6 +1,6 @@
-# Stocks – Final Project for EDAV (Fall 2025)
+# Movie Stocks – Final Project for EDAV (Fall 2025)
 
-This repo contains my EDAV final project, which explores how COVID-19 and recent market shifts (including the AI boom) affected the **movie/media industry**. I look at U.S. theatrical box office revenue and releases, AMC’s theatre footprint by state (2019 vs 2024), and stock performance of movie/media companies compared with major sector ETFs. The project is implemented as a **Quarto book** and styled with the **Litera** Bootswatch theme.
+This repo contains source files for my team's final project for our Exploratory Data Analysis and Visualization class. Our project explores how COVID-19 affected the **movie/media industry**. We looked at U.S. theatrical box office revenue and releases, AMC’s theatre footprint by state (2019 vs 2024), stock performance of movie/media companies compared with major sector ETFs, and stock performance of sub-industries within the movie industry. 
 
 ## Repo structure
 
@@ -22,8 +22,3 @@ This repo contains my EDAV final project, which explores how COVID-19 and recent
 
 All scraped / processed data are saved as CSVs in `data/` so the book can be rendered without re-running the scraping notebooks.
 
-```yaml
-# Theme (in _quarto.yml)
-format:
-  html:
-    theme: minty
