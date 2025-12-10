@@ -626,7 +626,7 @@ ggplot(cor_long, aes(Var1, Var2, fill = Correlation)) +
 
 ```
 
-Diversified media firms move most closely with the overall market (correlation 0.84). Studios and theaters are moderately linked (0.66), and streamers and studios also track each other pretty well (0.74). Theaters are the real outlier here, as their prices move much less in sync with the rest of the industry. This suggests that theater companies mayreact to a different set of forces than streaming or diversified media firms.
+Diversified media firms move most closely with the overall market (correlation 0.84). Studios and theaters are moderately linked (0.66), and streamers and studios also track each other pretty well (0.74). Theaters are the real outlier here, as their prices move much less in sync with the rest of the industry. This suggests that theater companies may react to a different set of forces than streaming or diversified media firms.
 
 ### Chart 9. Density of Daily Returns by Sub-Industry (2019- 2025)
 
