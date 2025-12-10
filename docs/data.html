@@ -76,7 +76,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-485d01fc63b59abcd3ee1bf1e8e2748d.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-364982630eef5352dd1537128a8ed5cb.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -134,7 +134,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Stocks</a> 
         <div class="sidebar-tools-main">
-    <a href="https://github.com/junjunzhang1998/stocks" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+    <a href="https://github.com/junjunzhang1998/movie-stocks" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
 </div>
     </div>
       </div>
@@ -182,7 +182,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#description" id="toc-description" class="nav-link active" data-scroll-target="#description"><span class="header-section-number">2.1</span> Description</a></li>
   <li><a href="#missing-value-analysis" id="toc-missing-value-analysis" class="nav-link" data-scroll-target="#missing-value-analysis"><span class="header-section-number">2.2</span> Missing value analysis</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/junjunzhang1998/stocks/edit/main/data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/junjunzhang1998/stocks/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/junjunzhang1998/movie-stocks/edit/main/data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/junjunzhang1998/movie-stocks/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -211,15 +211,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Our project uses three datasets that draw on two sources of data. The first dataset comes from Box Office Mojo, which reports domestic box office performance based on revenue submitted by studios and theater chains (https://www.boxofficemojo.com/year/?ref_=bo_nb_di_secondarytab). We scraped the site’s annual summary table using pandas.read_html(), which includes total box office, year-over-year percent change, number of releases, and the highest-grossing film for each year. The full scraping workflow is documented in data-raw/movie-boxoffice.ipynb.</p>
 <p>The second dataset is made up of stock prices of publicly traded movie-industry companies from the year 2019-01-01 to 2025-11-30. We pulled the data from Yahoo Finance using the yfinance package. Our movie-industry companies include major theater chains (AMC, CNK, IMAX), legacy studios (Disney, Comcast, Paramount/Sky, Warner Bros.&nbsp;Discovery, Fox), streaming platforms (Netflix, Roku), and diversified media (SONY). We also added the S&amp;P 500 index for benchmarking. Yahoo Finance provides daily open, high, low, close, adjusted close, and volume data, which we used to compute returns, volatility, and drawdowns. The full code for downloading and transforming this dataset is in data-raw/movie-stocks.ipynb.</p>
 <p>The third dataset extends the financial view by pulling data on a few broad sector ETFs from Yahoo Finance, allowing us to compare movie-industry companies to the overall market and other major sectors. This data was also downloaded and cleaned in data-raw/movie-stocks.ipynb.</p>
-<p>These three datasets were collected and ran through Jupyter Notebooks stored in the data-raw/ folder. We exported these datasets as cleaned csv in the data folder to ensure reproducibility. The main limitations are that Box Office Mojo occasionally changes its HTML structure, and Yahoo Finance’s API can return missing values, but both sources are widely used and generally reliable for exploratory analysis.</p>
-<p>A fourth dataset comes from AMC’s “U.S. Markets – Theatres &amp; Screens” tables for 2019 and 2024. We copied these tables from AMC’s 10-K filings on its investor relations site (https://investor.amctheatres.com/sec-filings/all-sec-filings/content/0001411579-20-000027/amc-20191231x10k.htm and https://investor.amctheatres.com/sec-filings/all-sec-filings/content/0001411579-25-000042/amc-20241231x10k.htm) and manually cleaned them in Excel into two files (AMC_theatres_screens_by_market_2019.xlsx and AMC_theatres_screens_by_market_2024.xlsx). We use these tables to compare AMC’s closure of theatres by state before and after COVID and to build the choropleth map in Section 1.</p>
+<p>These three datasets were collected and ran through Jupyter Notebooks stored in the /data-raw folder. We exported these datasets as cleaned csv in the data folder to ensure reproducibility. The main limitations are that Box Office Mojo occasionally changes its HTML structure, and Yahoo Finance’s API can return missing values, but both sources are widely used and generally reliable for exploratory analysis.</p>
+<p>A fourth dataset comes from AMC’s “U.S. Markets – Theatres &amp; Screens” tables for 2019 and 2024. We copied these tables from AMC’s 10-K filings on its investor relations site (https://investor.amctheatres.com/sec-filings/all-sec-filings/content/0001411579-20-000027/amc-20191231x10k.htm and https://investor.amctheatres.com/sec-filings/all-sec-filings/content/0001411579-25-000042/amc-20241231x10k.htm) and manually cleaned them in Excel into two files (AMC_theatres_screens_by_market_2019.xlsx and AMC_theatres_screens_by_market_2024.xlsx). We used these tables to compare AMC’s closure of theatres by state before and after COVID and to build the choropleth map in Section 1.</p>
 </section>
 <section id="missing-value-analysis" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="missing-value-analysis"><span class="header-section-number">2.2</span> Missing value analysis</h2>
-<p>The movie/media prices dataset has almost complete data. The only thing missing is the extra features created, and only about 2% of rows are missing vol_21d, and a smaller share (around 0.2%) is missing return. For the columns with missing values, such as the Volume or Close, the missingness plot shows that these mostly show up together. This implies that for a handful of dates, the whole price record is absent.</p>
-<p>For the sector ETF data, the story is very similar. All of the core price and identifier columns are complete, and the only missing values show up in vol_21d and a few return entries. So during the analysis and graphing, it’s reasonable to either drop these rows.</p>
-<p>For the box-office table, there are no missing values at all.</p>
-<p>As for the fourth dataset from AMC’s “U.S. Markets – Theatres &amp; Screens” tables for 2019 and 2024, we manually added data for three states into the 2024 file. When we checked missing values after making the AMC map, we noticed seven states with no 2019–2024 change data. After further looking into them, we found out that four of them (Vermont, Mississippi, Maine, and Rhode Island) never had AMC theatres at all, so they simply never show up in either table. For the other three (Delaware, Wyoming, and New Hampshire), AMC had one theatre in 2019 but none in 2024, so they were missing from the 2024 file even though they should really appear with a value of 0 theatres so that the graph can correctly show the change. As a result, we manually added the value of 0 for these three states (Delaware, Wyoming, and New Hampshire) for the 2024 file. The missing plot blow shows no value missing while four of states (Vermont, Mississippi, Maine, and Rhode Island) is missing is because they just do not exist in the data.</p>
+<p>Across our datasets, missingness is minimal. In the movie/media prices data, nearly all fields are complete; only the engineered features show gaps- about 2% of rows are missing vol_21d, and a smaller share (around 0.2%) are missing return values. For the columns with missing values, such as Volume or Close, the missingness plot indicates that these mostly show up together. This implies that an entire daily price record was absent for a small number of dates.</p>
+<p>For the sector ETF data, the story is very similar. All of the core price and identifier columns are complete. The only missing values show up in vol_21d and a few return entries. So during the analysis and graphing, it’s reasonable to either drop these rows.</p>
+<p>The box-office dataset contains no missing values.</p>
+<p>For the AMC “U.S. Markets – Theatres &amp; Screens” tables (2019 and 2024), we initially observed seven states without computed 2019–2024 changes. When we investigated, we learned that four of these states—Vermont, Mississippi, Maine, and Rhode Island—have never had AMC theatres, so they don’t show up in either year’s table. The remaining three states—Delaware, Wyoming, and New Hampshire—each had one AMC theatre in 2019 but none in 2024, so they were omitted from the 2024 file even though they should appear with a value of 0 theatres. We manually added zeros for these states to represent their 2024 counts accurately. After this correction, the missingness plot shows no missing values; the four states with no AMC presence simply do not appear in the underlying 10-K data because AMC does not operate theatres there.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -827,7 +827,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </div>   
     <div class="nav-footer-center">
       &nbsp;
-    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/junjunzhang1998/stocks/edit/main/data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/junjunzhang1998/stocks/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/junjunzhang1998/movie-stocks/edit/main/data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/junjunzhang1998/movie-stocks/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
     <div class="nav-footer-right">
 <p>This book was built with <a href="https://quarto.org/">Quarto</a>.</p>
 </div>
