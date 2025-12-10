@@ -91,9 +91,7 @@ ggplot(box_office, aes(Year, Releases)) +
 
 Similar to Chart 1, the number of theatrical releases dropped sharply in 2020 and remained below pre-pandemic levels. This indicates that studios have reduced their annual output, releasing fewer films than before—likely reflecting shifts in production and distribution strategies.
 
-### Chart 3. Change in AMC Theatres by State (2019–2024)
-
-Based on Chart 1 and Chart 2, box office revenue and the number of releases are both lower than before the pandemic. To understand why, it helps to look at the number of theatres.
+### Chart 3. Percent Change in AMC Theatres by State (2019 vs 2024)
 
 ```{r}
 message = FALSE
@@ -212,7 +210,7 @@ ggplot(map_data) +
     na.value = "grey50"
   ) +
   labs(
-    title    = "Percent change in AMC Theatres by State (2019–2024)",
+    title    = "Percent change in AMC Theatres by State (2019 vs 2024)",
     subtitle = "(Light grey = no change; dark grey = no AMC theatres)",
     caption  = "Source: AMC U.S. Markets Theatres & Screens tables, 2019 vs 2024"
   ) +
@@ -240,8 +238,6 @@ ggplot(map_data) +
 Across most of the country, AMC has closed more theatres than it opened between 2019 and 2024 (red states on the map). The biggest cuts are in Delaware, New Hampshire, Wyoming, Nebraska, and North Dakota, where AMC lost two-thirds or more of its theatres. Only a few states show growth, such as Connecticut, Massachusetts, Maryland, California, and New York, and many light grey states have no changes. Taken together, this suggests that AMC’s geographic footprint has been shrinking over the last few years.
 
 ## While most U.S. sectors recovered strongly post-COVID, the movie industry lags behind
-
-Section 3.1 showed that moviegoing was heavily affected by COVID. Section 3.2 below zooms out to compare movie stocks with major sector ETFs to see whether this weaker recovery is unique to the movie industry or part of a broader market trend.
 
 ### Chart 4. Movie Industry vs Major Sector ETFs (Rebased to 1)
 
@@ -436,7 +432,7 @@ ggplot() +
 
 ```
 
-This chart shows that two companies drove much of the volatility in the movie industry, helping explain the sector’s brief strength from late 2020 to 2022 (see chart 4). For example, Roku’s share price rose sharply in 2020, corresponding to higher streaming usage during stay-at-home conditions. AMC experienced large price swings in early 2021. This was due to the “meme-stock” trading frenzy driven by movements from the reddit group wallstreetbets. These movements stood out from the rest of the movie industry. However, in 2022, both ROKU and AMC collapsed- revealing these were temporary movements rather than lasting increase.
+This chart shows that two companies drove much of the volatility in the movie industry, helping explain the sector’s brief strength from late 2020 to 2022 (see chart 4). For example, Roku’s share price rose sharply in 2020, corresponding to higher streaming usage during stay-at-home period. AMC experienced large price swings in early 2021. This was due to the “meme-stock” trading frenzy driven by movements from the reddit group wallstreetbets. These movements stood out from the rest of the movie industry. However, in 2022, both ROKU and AMC stocks trended downward- revealing these were temporary movements rather than lasting increase.
 
 ### Chart 6. Sector Cumulative Performance Since 2019
 
@@ -490,9 +486,9 @@ ggplot(final_perf, aes(x = Sector, y = multiple, fill = is_movie)) +
 
 This chart shows how much each sector has grown/recovered relative to its 2019 level. Technology has nearly quintupled, most sectors, including the S&P 500 as baseline, have roughly doubled or grew more, but the movie industry is only about 1.7× its starting value, which again confirms its slow recovery.
 
-## 3. Performance of sub-industries within the movie industry differ
+## Performance of sub-industries within the movie industry differ
 
-From previous two sections, we’ve seen the movie industry indeed is smaller than it was before COVID and has recovered much slower than other industries. To understand what's driving this, we now look inside the industry. Different types of companies, such as streamers, theater, studios, and diversified media firms, may not move in the same way. So in this section, we break the movie industry into these sub-industries to see how each one has evolved.
+From previous two sections, we’ve seen the movie industry is indeed smaller than it was before COVID and has recovered much slower than other industries. We now look inside the movie industry. Different types of companies in the industry, such as streamers, theater, studios, and diversified media firms, may not move in the same way. In this section, we break the movie industry into these sub-industries to see how each one has evolved.
 
 ### Chart 7. Faceted Sub-Industry in Movie Industry Performance
 
@@ -630,7 +626,7 @@ ggplot(cor_long, aes(Var1, Var2, fill = Correlation)) +
 
 ```
 
-Diversified media firms move most closely with the overall market (correlation 0.84). Studios and theaters are moderately linked (0.66), and streamers and studios also track each other pretty well (0.74). Theaters are the real outlier here, as their prices move much less in sync with the rest of the industry. This suggests that theater companies react to a different set of forces than streaming or diversified media firms.
+Diversified media firms move most closely with the overall market (correlation 0.84). Studios and theaters are moderately linked (0.66), and streamers and studios also track each other pretty well (0.74). Theaters are the real outlier here, as their prices move much less in sync with the rest of the industry. This suggests that theater companies mayreact to a different set of forces than streaming or diversified media firms.
 
 ### Chart 9. Density of Daily Returns by Sub-Industry (2019- 2025)
 
@@ -775,7 +771,7 @@ ggplot(
     axis.text.x      = element_text(lineheight = 0.9)
   )
 ```
-Because each sub-industry contains only a small number of publicly traded companies, this alluvial chart is naturally a bit noisy, and the movements shouldn’t be interpreted too literally. The flows should be read as illustrative of broad shifts rather than precise estimates of how every part of the industry moved.
+Because each sub-industry contains only a few publicly traded companies, the chart is noisy. No strong or consistent patterns appear. The flows are better interpreted as broad observations of stock price movements rather than meaningful signals.
 
 
 

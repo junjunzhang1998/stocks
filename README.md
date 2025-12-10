@@ -26,4 +26,4 @@ All scraped / processed data are saved as CSVs in `data/` so the book can be ren
 # Theme (in _quarto.yml)
 format:
   html:
-    theme: litera
+    theme: minty
