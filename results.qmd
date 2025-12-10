@@ -163,6 +163,8 @@ map_data <- states_sf_conus |>
 ```
 
 ```{r}
+library(scales)
+
 # Symmetric limits around zero for the diverging scale
 lim <- max(abs(map_data$theatres_pct_change), na.rm = TRUE)
 
@@ -172,7 +174,6 @@ ggplot(map_data) +
     colour = "white",
     linewidth = 0.2
   ) +
-  # zoom to lower 48 + DC
   coord_sf(
     xlim   = c(-125, -66),
     ylim   = c(24, 50),
@@ -182,22 +183,25 @@ ggplot(map_data) +
     name     = "Percent change\nin theatres",
     labels   = percent_format(accuracy = 1),
     limits   = c(-lim, lim),
-    low      = "#b2182b",   # closures / big declines
-    mid      = "white",
+    low      = "#b2182b",   # big declines
+    mid      = "#f0f0f0",   # 0% change -> light grey (visible)
     high     = "#2166ac",   # growth
     midpoint = 0,
-    na.value = "grey50"
+    na.value = "grey50"     # no AMC data
   ) +
   labs(
-    title    = "Change in AMC Theatres by State (2019–2024)",
-    subtitle = "Percent change in number of AMC theatres\n(Grey = no data / no theatres)",
+    title    = "Percent change in AMC Theatres by State (2019–2024)",
+    subtitle = "(Light grey = no change; dark grey = no AMC theatres)",
     caption  = "Source: AMC U.S. Markets Theatres & Screens tables, 2019 vs 2024"
   ) +
-  theme_minimal(base_size = 14) +
+ theme_minimal(base_size = 14) +
   theme(
-    panel.grid       = element_blank(),
-    axis.title       = element_blank(),
-    plot.title.position = "plot"
+    panel.grid        = element_blank(),
+    axis.title        = element_blank(),
+    plot.title.position = "plot",
+    plot.title        = element_text(margin = margin(b = 6)),
+    plot.subtitle     = element_text(margin = margin(b = 10)),
+    plot.margin       = margin(t = 10, r = 15, b = 10, l = 10)
   )
 state_changes |>
   arrange(theatres_pct_change) |>
